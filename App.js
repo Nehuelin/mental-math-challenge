@@ -1,20 +1,98 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { SafeAreaView, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { DEFAULT_ITERATIONS } from './src/constants/gameConfig';
+import { SetupScreen } from './src/screens/SetupScreen';
+import { GameScreen } from './src/screens/GameScreen';
+import { SummaryScreen } from './src/screens/SummaryScreen';
+import { clearHistory, loadHistory, saveRoundResult } from './src/services/historyStorage';
 
 export default function App() {
+  const [screen, setScreen] = useState('setup');
+  const [difficulty, setDifficulty] = useState('easy');
+  const [mode, setMode] = useState('classic');
+  const [iterations, setIterations] = useState(DEFAULT_ITERATIONS);
+  const [history, setHistory] = useState([]);
+  const [lastRound, setLastRound] = useState(null);
+  const [storageError, setStorageError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+
+    loadHistory()
+      .then((storedHistory) => {
+        if (mounted) {
+          setHistory(storedHistory);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setStorageError('Local history could not be loaded on this device.');
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const settings = useMemo(() => ({ difficulty, mode, iterations }), [difficulty, mode, iterations]);
+
+  const startRound = useCallback(() => {
+    setLastRound(null);
+    setScreen('game');
+  }, []);
+
+  const finishRound = useCallback((round) => {
+    setLastRound(round);
+    setScreen('summary');
+    saveRoundResult(round)
+      .then(setHistory)
+      .catch(() => setStorageError('Round finished, but local history could not be saved.'));
+  }, []);
+
+  const handleClearHistory = useCallback(() => {
+    clearHistory()
+      .then(setHistory)
+      .catch(() => setStorageError('Local history could not be cleared.'));
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style="light" />
+      {!!storageError && <Text style={styles.storageError}>{storageError}</Text>}
+      {screen === 'setup' && (
+        <SetupScreen
+          difficulty={difficulty}
+          history={history}
+          iterations={iterations}
+          mode={mode}
+          onClearHistory={handleClearHistory}
+          onDifficultyChange={setDifficulty}
+          onIterationsChange={setIterations}
+          onModeChange={setMode}
+          onStart={startRound}
+        />
+      )}
+      {screen === 'game' && <GameScreen settings={settings} onCancel={() => setScreen('setup')} onFinish={finishRound} />}
+      {screen === 'summary' && lastRound && (
+        <SummaryScreen round={lastRound} onHome={() => setScreen('setup')} onRestart={startRound} />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
+    backgroundColor: '#17213f',
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+  },
+  storageError: {
+    backgroundColor: '#fff0f3',
+    color: '#c93d5a',
+    fontSize: 13,
+    fontWeight: '800',
+    padding: 10,
+    textAlign: 'center',
   },
 });
