@@ -46,7 +46,7 @@ export const GAME_MODES = {
     description: 'Escribe el resultado exacto antes de que se termine el tiempo.',
   },
   trueFalse: {
-    label: 'Verdadero  / Falso',
+    label: 'Verdadero / Falso',
     description: 'Decide si la ecuación mostrada es correcta o no.',
   },
   multipleChoice: {
