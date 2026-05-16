@@ -11,6 +11,8 @@ export const DIFFICULTIES = {
     wrongPenalty: 24,
     timeoutPenalty: 42,
     fastRatio: 0.6,
+    dynamicTimeStepMs: 650,
+    minDynamicTimeMs: 4500,
   },
   medium: {
     label: 'Medio',
@@ -24,6 +26,8 @@ export const DIFFICULTIES = {
     wrongPenalty: 35,
     timeoutPenalty: 58,
     fastRatio: 0.55,
+    dynamicTimeStepMs: 575,
+    minDynamicTimeMs: 3400,
   },
   hard: {
     label: 'Difícil',
@@ -37,6 +41,8 @@ export const DIFFICULTIES = {
     wrongPenalty: 52,
     timeoutPenalty: 76,
     fastRatio: 0.5,
+		dynamicTimeStepMs: 450,
+    minDynamicTimeMs: 2500,
   },
 };
 

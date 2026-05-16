@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { DEFAULT_ITERATIONS } from './src/constants/gameConfig';
 import { SetupScreen } from './src/screens/SetupScreen';
 import { GameScreen } from './src/screens/GameScreen';
+import { ScoreRevealScreen } from './src/screens/ScoreRevealScreen';
 import { SummaryScreen } from './src/screens/SummaryScreen';
 import { clearHistory, loadHistory, saveRoundResult } from './src/services/historyStorage';
 
@@ -12,6 +13,7 @@ export default function App() {
   const [difficulty, setDifficulty] = useState('easy');
   const [mode, setMode] = useState('classic');
   const [iterations, setIterations] = useState(DEFAULT_ITERATIONS);
+  const [dynamicDifficulty, setDynamicDifficulty] = useState(false);
   const [history, setHistory] = useState([]);
   const [lastRound, setLastRound] = useState(null);
   const [storageError, setStorageError] = useState('');
@@ -36,7 +38,7 @@ export default function App() {
     };
   }, []);
 
-  const settings = useMemo(() => ({ difficulty, mode, iterations }), [difficulty, mode, iterations]);
+  const settings = useMemo(() => ({ difficulty, mode, iterations, dynamicDifficulty }), [difficulty, dynamicDifficulty, mode, iterations]);
 
   const startRound = useCallback(() => {
     setLastRound(null);
@@ -45,7 +47,7 @@ export default function App() {
 
   const finishRound = useCallback((round) => {
     setLastRound(round);
-    setScreen('summary');
+    setScreen('scoreReveal');
     saveRoundResult(round)
       .then(setHistory)
       .catch(() => setStorageError('Round finished, but local history could not be saved.'));
@@ -64,17 +66,20 @@ export default function App() {
       {screen === 'setup' && (
         <SetupScreen
           difficulty={difficulty}
+          dynamicDifficulty={dynamicDifficulty}
           history={history}
           iterations={iterations}
           mode={mode}
           onClearHistory={handleClearHistory}
           onDifficultyChange={setDifficulty}
+          onDynamicDifficultyChange={setDynamicDifficulty}
           onIterationsChange={setIterations}
           onModeChange={setMode}
           onStart={startRound}
         />
       )}
       {screen === 'game' && <GameScreen settings={settings} onCancel={() => setScreen('setup')} onFinish={finishRound} />}
+      {screen === 'scoreReveal' && lastRound && <ScoreRevealScreen round={lastRound} onContinue={() => setScreen('summary')} />}
       {screen === 'summary' && lastRound && (
         <SummaryScreen round={lastRound} onHome={() => setScreen('setup')} onRestart={startRound} />
       )}

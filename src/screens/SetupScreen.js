@@ -7,10 +7,12 @@ export function SetupScreen({
   difficulty,
   mode,
   iterations,
+  dynamicDifficulty,
   history,
   onDifficultyChange,
   onModeChange,
   onIterationsChange,
+  onDynamicDifficultyChange,
   onStart,
   onClearHistory,
 }) {
@@ -38,6 +40,21 @@ export function SetupScreen({
               onPress={() => onDifficultyChange(key)}
             />
           ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Dificultad dinámica</Text>
+        <View style={styles.dynamicCard}>
+          <Text style={styles.modeDescription}>
+            Reduce gradualmente el tiempo disponible después de cada acierto. Respuestas incorrectas aumentan el tiempo.
+          </Text>
+          <PrimaryButton
+            title={dynamicDifficulty ? 'Activada' : 'Desactivada'}
+            selected={dynamicDifficulty}
+            variant="ghost"
+            onPress={() => onDynamicDifficultyChange(!dynamicDifficulty)}
+          />
         </View>
       </View>
 
@@ -133,6 +150,12 @@ const styles = StyleSheet.create({
   },
   grid: {
     gap: 6,
+  },
+  dynamicCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 18,
+    gap: 8,
+    padding: 10,
   },
   modeRow: {
     backgroundColor: '#ffffff',
