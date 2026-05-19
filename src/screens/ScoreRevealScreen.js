@@ -73,7 +73,7 @@ export function ScoreRevealScreen({ round, onContinue }) {
       </View>
 
       <View style={styles.breakdownCard}>
-        <Text style={styles.sectionTitle}>Desglose animado</Text>
+        <Text style={styles.sectionTitle}>Desglose</Text>
         {milestones.map((milestone) => {
           const revealed = revealedKeys.includes(milestone.key);
           return (

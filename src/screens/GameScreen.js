@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Easing, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { DIFFICULTIES, GAME_MODES } from '../constants/gameConfig';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { generateQuestion, normalizeClassicAnswer } from '../utils/mathGame';
@@ -19,6 +19,9 @@ export function GameScreen({ settings, onCancel, onFinish }) {
   const [trialRemainingMs, setTrialRemainingMs] = useState(difficultyConfig.timeTrialMs);
   const [feedback, setFeedback] = useState('');
   const feedbackScale = useRef(new Animated.Value(1)).current;
+  const driftA = useRef(new Animated.Value(0)).current;
+  const driftB = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
   const startTimeRef = useRef(Date.now());
   const trialStartTimeRef = useRef(null);
   const lockRef = useRef(false);
@@ -183,6 +186,116 @@ export function GameScreen({ settings, onCancel, onFinish }) {
   const trialRatio = useMemo(() => trialRemainingMs / difficultyConfig.timeTrialMs, [difficultyConfig.timeTrialMs, trialRemainingMs]);
   const runningScore = useMemo(() => answers.reduce((sum, answer) => sum + answer.points, 0), [answers]);
 
+  // ANIMACION DE FONDO
+  useEffect(() => {
+    const animationA = Animated.loop(
+      Animated.sequence([
+        Animated.timing(driftA, {
+          toValue: 1,
+          duration: 3600,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(driftA, {
+          toValue: 0,
+          duration: 3600,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    const animationB = Animated.loop(
+      Animated.sequence([
+        Animated.timing(driftB, {
+          toValue: 1,
+          duration: 2800,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(driftB, {
+          toValue: 0,
+          duration: 2800,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1700,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 1700,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    animationA.start();
+    animationB.start();
+    pulseAnimation.start();
+
+    return () => {
+      animationA.stop();
+      animationB.stop();
+      pulseAnimation.stop();
+    };
+  }, [driftA, driftB, pulse]);
+
+  const distractionBlobAStyle = useMemo(() => ({
+    transform: [
+      {
+        translateX: driftA.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-32, 38],
+        }),
+      },
+      {
+        translateY: driftA.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-24, 28],
+        }),
+      },
+      {
+        scale: pulse.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 1.2],
+        }),
+      },
+    ],
+  }), [driftA, pulse]);
+
+  const distractionBlobBStyle = useMemo(() => ({
+    transform: [
+      {
+        translateX: driftB.interpolate({
+          inputRange: [0, 1],
+          outputRange: [35, -30],
+        }),
+      },
+      {
+        translateY: driftB.interpolate({
+          inputRange: [0, 1],
+          outputRange: [26, -22],
+        }),
+      },
+      {
+        scale: pulse.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1.18, 0.95],
+        }),
+      },
+    ],
+  }), [driftB, pulse]);
+
   if (!gameStarted) {
     return (
       <View style={styles.countdownContainer}>
@@ -195,6 +308,13 @@ export function GameScreen({ settings, onCancel, onFinish }) {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
+      <View pointerEvents="none" style={styles.distractionBackground}>
+        <Animated.View style={[styles.distractionBlob, styles.distractionBlobA, distractionBlobAStyle]} />
+        <Animated.View style={[styles.distractionBlob, styles.distractionBlobB, distractionBlobBStyle]} />
+        <Animated.View style={[styles.distractionRing, distractionBlobBStyle]} />
+      </View>
+
+
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.topBar}>
           <View>
@@ -303,10 +423,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   container: {
-    backgroundColor: '#f5f7ff',
     flexGrow: 1,
     padding: 20,
     paddingBottom: 42,
+  },
+  distractionBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#f5f7ff',
+    overflow: 'hidden',
+  },
+  distractionBlob: {
+    borderRadius: 999,
+    opacity: 0.18,
+    position: 'absolute',
+  },
+  distractionBlobA: {
+    backgroundColor: '#3957ff',
+    height: 260,
+    left: -84,
+    top: 88,
+    width: 260,
+  },
+  distractionBlobB: {
+    backgroundColor: '#ff3d8b',
+    bottom: 106,
+    height: 230,
+    right: -76,
+    width: 230,
+  },
+  distractionRing: {
+    borderColor: '#06d6a0',
+    borderRadius: 999,
+    borderWidth: 20,
+    height: 190,
+    left: 108,
+    opacity: 0.22,
+    position: 'absolute',
+    top: 288,
+    width: 190,
   },
   topBar: {
     alignItems: 'center',

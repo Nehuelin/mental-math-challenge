@@ -87,8 +87,8 @@ export function SummaryScreen({ round, onRestart, onHome }){
           <View key={`${answer.questionId}-${index}`} style={styles.answerRow}>
             <Text style={styles.answerExpression}>{index + 1}. {answer.expression}</Text>
             <Text style={[styles.answerMeta, answer.isCorrect ? styles.correct : styles.incorrect]}>
-              {answer.timedOut ? 'Sin respuesta' : answer.isCorrect ? 'Correcta' : 'Incorrecta'} • {answer.points} puntos •{' '}
-              {answer.responseTimeMs === null ? '—' : formatSeconds(answer.responseTimeMs)} • límite {formatSeconds(answer.timeLimitMs ?? 0)}
+              {answer.timedOut ? 'Sin respuesta' : answer.isCorrect ? 'Correcta' : 'Incorrecta'} | {answer.points} puntos |{' '}
+              {answer.responseTimeMs === null ? '—' : formatSeconds(answer.responseTimeMs)} | Límite {formatSeconds(answer.timeLimitMs ?? 0)}
             </Text>
           </View>
         ))}
