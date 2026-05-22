@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text } from 'react-native';
+import { Animated, Easing, SafeAreaView, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import { DEFAULT_ITERATIONS } from './src/constants/gameConfig';
@@ -19,6 +19,8 @@ export default function App() {
   const [lastRound, setLastRound] = useState(null);
   const [storageError, setStorageError] = useState('');
   const previousScreenRef = useRef(screen);
+  const transitionOpacity = useRef(new Animated.Value(1)).current;
+  const transitionTranslate = useRef(new Animated.Value(0)).current;
 
   const setupMusic = useAudioPlayer(require('./assets/music/NMT-choose.mp3'));
   const gameMusic1991 = useAudioPlayer(require('./assets/music/1991.mp3'));
@@ -57,6 +59,27 @@ export default function App() {
 
     previousScreenRef.current = screen;
   }, [endMusic, gameMusic1991, gameMusicField, playMusic, screen, setupMusic]);
+
+  useEffect(() => {
+    transitionOpacity.setValue(0);
+    transitionTranslate.setValue(18);
+
+    Animated.parallel([
+      Animated.timing(transitionOpacity, {
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(transitionTranslate, {
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+        toValue: 0,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [screen, transitionOpacity, transitionTranslate]);
+
 
   useEffect(() => {
     let mounted = true;
@@ -104,6 +127,7 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
       {!!storageError && <Text style={styles.storageError}>{storageError}</Text>}
+      <Animated.View style={[styles.screenContainer, { opacity: transitionOpacity, transform: [{ translateY: transitionTranslate }] }]}>
       {screen === 'setup' && (
         <SetupScreen
           difficulty={difficulty}
@@ -124,6 +148,7 @@ export default function App() {
       {screen === 'summary' && lastRound && (
         <SummaryScreen round={lastRound} onHome={() => setScreen('setup')} onRestart={startRound} />
       )}
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -131,6 +156,9 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: '#17213f',
+    flex: 1,
+  },
+  screenContainer: {
     flex: 1,
   },
   storageError: {
