@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import { DEFAULT_ITERATIONS } from './src/constants/gameConfig';
 import { SetupScreen } from './src/screens/SetupScreen';
 import { GameScreen } from './src/screens/GameScreen';
@@ -17,6 +18,45 @@ export default function App() {
   const [history, setHistory] = useState([]);
   const [lastRound, setLastRound] = useState(null);
   const [storageError, setStorageError] = useState('');
+  const previousScreenRef = useRef(screen);
+
+  const setupMusic = useAudioPlayer(require('./assets/music/NMT-choose.mp3'));
+  const gameMusic1991 = useAudioPlayer(require('./assets/music/1991.mp3'));
+  const gameMusicField = useAudioPlayer(require('./assets/music/Field.mp3'));
+  const endMusic = useAudioPlayer(require('./assets/music/Tomorrowland.mp3'));
+
+  const stopAllMusic = useCallback(() => {
+    [setupMusic, gameMusic1991, gameMusicField, endMusic].forEach((player) => {
+      player.pause();
+      player.seekTo(0);
+    });
+  }, [endMusic, gameMusic1991, gameMusicField, setupMusic]);
+
+  const playMusic = useCallback((player) => {
+    setAudioModeAsync({ playsInSilentMode: true });
+    stopAllMusic();
+    player.seekTo(0);
+    player.play();
+  }, [stopAllMusic]);
+
+  useEffect(() => {
+    setAudioModeAsync({ playsInSilentMode: true });
+  }, []);
+
+  useEffect(() => {
+    const previousScreen = previousScreenRef.current;
+
+    if (screen === 'setup') {
+      playMusic(setupMusic);
+    } else if (screen === 'game' && previousScreen !== 'game') {
+      const selectedTrack = Math.random() < 0.5 ? gameMusic1991 : gameMusicField;
+      playMusic(selectedTrack);
+    } else if (screen === 'scoreReveal' && previousScreen === 'game') {
+      playMusic(endMusic);
+    }
+
+    previousScreenRef.current = screen;
+  }, [endMusic, gameMusic1991, gameMusicField, playMusic, screen, setupMusic]);
 
   useEffect(() => {
     let mounted = true;
@@ -35,8 +75,9 @@ export default function App() {
 
     return () => {
       mounted = false;
+      stopAllMusic();
     };
-  }, []);
+  }, [stopAllMusic]);
 
   const settings = useMemo(() => ({ difficulty, mode, iterations, dynamicDifficulty }), [difficulty, dynamicDifficulty, mode, iterations]);
 

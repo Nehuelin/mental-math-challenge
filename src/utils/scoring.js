@@ -43,7 +43,7 @@ export const scoreAnswer = (payload) => getScoreBreakdown(payload).points;
 export const summarizeResults = (answers) => {
   const total = answers.length;
   const correct = answers.filter((answer) => answer.isCorrect).length;
-  const incorrect = answers.filter((answer) => !answer.isCorrect).length;
+  const incorrect = answers.filter((answer) => !answer.isCorrect && !answer.timedOut).length;
   const timedOut = answers.filter((answer) => answer.timedOut).length;
   const score = answers.reduce((sum, answer) => sum + answer.points, 0);
   const responseTimes = answers.filter((answer) => answer.responseTimeMs !== null).map((answer) => answer.responseTimeMs);

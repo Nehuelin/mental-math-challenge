@@ -24,6 +24,7 @@ export function GameScreen({ settings, onCancel, onFinish }) {
   const pulse = useRef(new Animated.Value(0)).current;
   const startTimeRef = useRef(Date.now());
   const trialStartTimeRef = useRef(null);
+  const trialBonusMsRef = useRef(0);
   const lockRef = useRef(false);
   const finishedRef = useRef(false);
 
@@ -95,6 +96,15 @@ export function GameScreen({ settings, onCancel, onFinish }) {
       ? Math.max(difficultyConfig.minDynamicTimeMs, questionTimeLimitMs - difficultyConfig.dynamicTimeStepMs)
       : questionTimeLimitMs;
     const difficultyBoosted = nextTimeLimitMs < questionTimeLimitMs;
+    const trialTimeBonusMs = isTimeTrial && isCorrect
+      ? ({ easy: 2500, medium: 2000, hard: 1500 }[settings.difficulty] || 0)
+      : 0;
+
+    if (trialTimeBonusMs > 0) {
+      trialBonusMsRef.current += trialTimeBonusMs;
+      setTrialRemainingMs((current) => current + trialTimeBonusMs);
+    }
+
     const result = {
       questionId: question.id,
       expression: question.expression,
@@ -170,7 +180,7 @@ export function GameScreen({ settings, onCancel, onFinish }) {
 
     const intervalId = setInterval(() => {
       const elapsed = Date.now() - trialStartTimeRef.current;
-      setTrialRemainingMs(Math.max(0, difficultyConfig.timeTrialMs - elapsed));
+      setTrialRemainingMs(Math.max(0, difficultyConfig.timeTrialMs + trialBonusMsRef.current - elapsed));
     }, 100);
 
     return () => clearInterval(intervalId);
@@ -183,7 +193,7 @@ export function GameScreen({ settings, onCancel, onFinish }) {
   }, [answers, finishRound, gameStarted, isTimeTrial, trialRemainingMs]);
 
   const timerRatio = useMemo(() => remainingMs / questionTimeLimitMs, [questionTimeLimitMs, remainingMs]);
-  const trialRatio = useMemo(() => trialRemainingMs / difficultyConfig.timeTrialMs, [difficultyConfig.timeTrialMs, trialRemainingMs]);
+  const trialRatio = useMemo(() => Math.min(1, trialRemainingMs / difficultyConfig.timeTrialMs), [difficultyConfig.timeTrialMs, trialRemainingMs]);
   const runningScore = useMemo(() => answers.reduce((sum, answer) => sum + answer.points, 0), [answers]);
 
   // ANIMACION DE FONDO

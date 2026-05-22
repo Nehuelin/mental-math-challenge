@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { StatCard } from '../components/StatCard';
+import PieChart from 'react-native-pie-chart';
 
 const formatSeconds = (ms) => `${(ms / 1000).toFixed(2)}s`;
 
@@ -42,9 +43,12 @@ export function SummaryScreen({ round, onRestart, onHome }){
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Gráfica de precisión</Text>
-        <View style={styles.accuracyTrack}>
-          <View style={[styles.accuracyCorrect, { flex: summary.correct }]} />
-          <View style={[styles.accuracyIncorrect, { flex: summary.incorrect || 0.0001 }]} />
+        <View style={styles.pieWrap}>
+          <PieChart widthAndHeight={250} series={[
+            {value: summary.incorrect, color: '#c93d5a', label: {text: `${summary.incorrect * 100 / summary.total}%`, fontWeight: 800}},
+            {value: summary.correct, color: '#3957ff', label: {text: `${summary.correct * 100 / summary.total}%`,  fontWeight: 800}},
+            {value: summary.timedOut, color: '#929293', label: {text: `${summary.timedOut * 100 / summary.total}%`,  fontWeight: 800}},
+          ]}/>
         </View>
         <View style={styles.legendRow}>
           <Text style={styles.legendText}>Correctas: {summary.correct}</Text>
@@ -169,6 +173,11 @@ const styles = StyleSheet.create({
     color: '#6f7894',
     fontSize: 12,
     fontWeight: '800',
+  },
+  pieWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 8,
   },
   chartRow: {
     alignItems: 'center',
