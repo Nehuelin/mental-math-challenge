@@ -18,10 +18,12 @@ export function GameScreen({ settings, onCancel, onFinish }) {
   const [remainingMs, setRemainingMs] = useState(difficultyConfig.maxTimeMs);
   const [trialRemainingMs, setTrialRemainingMs] = useState(difficultyConfig.timeTrialMs);
   const [feedback, setFeedback] = useState('');
+  const [trialBonusLabel, setTrialBonusLabel] = useState('');
   const feedbackScale = useRef(new Animated.Value(1)).current;
   const driftA = useRef(new Animated.Value(0)).current;
   const driftB = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
+  const trialBonusFade = useRef(new Animated.Value(0)).current;
   const startTimeRef = useRef(Date.now());
   const trialStartTimeRef = useRef(null);
   const trialBonusMsRef = useRef(0);
@@ -61,6 +63,38 @@ export function GameScreen({ settings, onCancel, onFinish }) {
       useNativeDriver: true,
     }).start();
   }, [feedbackScale]);
+
+  const animateTrialBonus = useCallback((bonusMs) => {
+    if (!bonusMs) {
+      return;
+    }
+
+    setTrialBonusLabel(`+${(bonusMs / 1000).toFixed(1)}s`);
+    trialBonusFade.stopAnimation();
+    trialBonusFade.setValue(0);
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(trialBonusFade, {
+          toValue: 1,
+          duration: 170,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(trialBonusFade, {
+          toValue: 0.65,
+          duration: 900,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.timing(trialBonusFade, {
+        toValue: 0,
+        duration: 260,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start(() => setTrialBonusLabel(''));
+  }, [trialBonusFade]);
 
   const moveNext = useCallback((finalAnswers, nextTimeLimitMs) => {
     if (!isTimeTrial && finalAnswers.length >= settings.iterations) {
@@ -103,6 +137,7 @@ export function GameScreen({ settings, onCancel, onFinish }) {
     if (trialTimeBonusMs > 0) {
       trialBonusMsRef.current += trialTimeBonusMs;
       setTrialRemainingMs((current) => current + trialTimeBonusMs);
+      animateTrialBonus(trialTimeBonusMs);
     }
 
     const result = {
@@ -135,7 +170,7 @@ export function GameScreen({ settings, onCancel, onFinish }) {
     }
 
     setTimeout(() => moveNext(finalAnswers, nextTimeLimitMs), 650);
-  }, [animateFeedback, answers, difficultyConfig.dynamicTimeStepMs, difficultyConfig.minDynamicTimeMs, dynamicDifficultyEnabled, finishRound, gameStarted, isTimeTrial, moveNext, playSound, question, questionTimeLimitMs, settings.difficulty, settings.mode]);
+  }, [animateFeedback, animateTrialBonus, answers, difficultyConfig.dynamicTimeStepMs, difficultyConfig.minDynamicTimeMs, dynamicDifficultyEnabled, finishRound, gameStarted, isTimeTrial, moveNext, playSound, question, questionTimeLimitMs, settings.difficulty, settings.mode]);
 
   useEffect(() => {
     if (gameStarted) {
@@ -335,9 +370,36 @@ export function GameScreen({ settings, onCancel, onFinish }) {
         </View>
 
         {isTimeTrial && (
-          <View style={styles.trialTimerWrap}>
-            <View style={[styles.trialTimerFill, { width: `${trialRatio * 100}%` }]} />
-            <Text style={styles.trialTimerText}>Tiempo de ronda: {(trialRemainingMs / 1000).toFixed(1)}s</Text>
+          <View style={styles.trialTimerContainer}>
+            <Animated.Text
+              pointerEvents="none"
+              style={[
+                styles.trialBonusText,
+                {
+                  opacity: trialBonusFade,
+                  transform: [
+                    {
+                      translateY: trialBonusFade.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [4, -16],
+                      }),
+                    },
+                    {
+                      scale: trialBonusFade.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.92, 1.08],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              {trialBonusLabel}
+            </Animated.Text>
+            <View style={styles.trialTimerWrap}>
+              <View style={[styles.trialTimerFill, { width: `${trialRatio * 100}%` }]} />
+              <Text style={styles.trialTimerText}>Tiempo de ronda: {(trialRemainingMs / 1000).toFixed(1)}s</Text>
+            </View>
           </View>
         )}
 
@@ -488,12 +550,15 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     marginTop: 2,
   },
+  trialTimerContainer: {
+    marginVertical: 16,
+    position: 'relative'
+  },
   trialTimerWrap: {
     backgroundColor: '#dfe5ff',
     borderRadius: 16,
     height: 32,
     justifyContent: 'center',
-    marginVertical: 16,
     overflow: 'hidden',
   },
   trialTimerFill: {
@@ -502,6 +567,16 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
     top: 0,
+  },
+  trialBonusText: {
+    color: '#12805c',
+    fontSize: 18,
+    fontWeight: '900',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    textAlign: 'center',
+    top: -24,
   },
   trialTimerText: {
     color: '#17213f',

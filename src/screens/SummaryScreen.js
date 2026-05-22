@@ -4,6 +4,7 @@ import { StatCard } from '../components/StatCard';
 import PieChart from 'react-native-pie-chart';
 
 const formatSeconds = (ms) => `${(ms / 1000).toFixed(2)}s`;
+const formatPercent = (value, total) => `${((value * 100) / total).toFixed(1)}%`;
 
 export function SummaryScreen({ round, onRestart, onHome }){
   const { summary } = round;
@@ -15,6 +16,17 @@ export function SummaryScreen({ round, onRestart, onHome }){
     Math.abs(summary.scoreBreakdown.penalties),
     1,
   );
+
+  const accuracySeries = [
+    { value: summary.incorrect, color: '#c93d5a' },
+    { value: summary.correct, color: '#3957ff' },
+    { value: summary.timedOut, color: '#929293' },
+  ].filter((slice) => slice.value > 0)
+    .map((slice) => ({
+      ...slice,
+      label: { text: formatPercent(slice.value, summary.total), fontWeight: 800 },
+    }));
+
   const scoreParts = [
     { label: 'Base', value: summary.scoreBreakdown.basePoints, color: '#3957ff' },
     { label: 'Velocidad', value: summary.scoreBreakdown.speedBonus, color: '#12805c' },
@@ -44,11 +56,7 @@ export function SummaryScreen({ round, onRestart, onHome }){
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Gráfica de precisión</Text>
         <View style={styles.pieWrap}>
-          <PieChart widthAndHeight={250} series={[
-            {value: summary.incorrect, color: '#c93d5a', label: {text: `${summary.incorrect * 100 / summary.total}%`, fontWeight: 800}},
-            {value: summary.correct, color: '#3957ff', label: {text: `${summary.correct * 100 / summary.total}%`,  fontWeight: 800}},
-            {value: summary.timedOut, color: '#929293', label: {text: `${summary.timedOut * 100 / summary.total}%`,  fontWeight: 800}},
-          ]}/>
+          <PieChart widthAndHeight={250} series={accuracySeries}/>
         </View>
         <View style={styles.legendRow}>
           <Text style={styles.legendText}>Correctas: {summary.correct}</Text>
