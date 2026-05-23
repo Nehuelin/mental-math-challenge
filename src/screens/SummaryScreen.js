@@ -71,7 +71,8 @@ export function SummaryScreen({ round, onRestart, onHome }){
         </View>
         <View style={styles.legendRow}>
           <Text style={styles.legendText}>Correctas: {summary.correct}</Text>
-          <Text style={styles.legendText}>Fallos / tiempo: {summary.incorrect}</Text>
+          <Text style={styles.legendText}>Fallos: {summary.incorrect}</Text>
+          <Text style={styles.legendText}>Fuera de tiempo: {summary.timedOut}</Text>
         </View>
       </View>
 
