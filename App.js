@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, SafeAreaView, StyleSheet, Text } from 'react-native';
+import { Animated, Easing, StyleSheet, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import { DEFAULT_ITERATIONS } from './src/constants/gameConfig';
@@ -25,14 +26,16 @@ export default function App() {
   const setupMusic = useAudioPlayer(require('./assets/music/NMT-choose.mp3'));
   const gameMusic1991 = useAudioPlayer(require('./assets/music/1991.mp3'));
   const gameMusicField = useAudioPlayer(require('./assets/music/Field.mp3'));
+  const gameMusicHighTogether = useAudioPlayer(require('./assets/music/High-Together.mp3'))
+  const gameMusicEnsenada= useAudioPlayer(require('./assets/music/Ensenada.mp3'))
   const endMusic = useAudioPlayer(require('./assets/music/Tomorrowland.mp3'));
 
   const stopAllMusic = useCallback(() => {
-    [setupMusic, gameMusic1991, gameMusicField, endMusic].forEach((player) => {
+    [setupMusic, gameMusic1991, gameMusicField, gameMusicHighTogether, gameMusicEnsenada, endMusic].forEach((player) => {
       player.pause();
       player.seekTo(0);
     });
-  }, [endMusic, gameMusic1991, gameMusicField, setupMusic]);
+  }, [endMusic, gameMusic1991, gameMusicField, gameMusicEnsenada, gameMusicHighTogether, setupMusic]);
 
   const playMusic = useCallback((player) => {
     setAudioModeAsync({ playsInSilentMode: true });
@@ -43,10 +46,10 @@ export default function App() {
 
   useEffect(() => {
     void setAudioModeAsync({ playsInSilentMode: true });
-    [setupMusic, gameMusic1991, gameMusicField, endMusic].forEach((player) => {
+    [setupMusic, gameMusic1991, gameMusicField, gameMusicHighTogether, gameMusicEnsenada, endMusic].forEach((player) => {
       player.loop = true;
     });
-  }, [endMusic, gameMusic1991, gameMusicField, setupMusic]);
+  }, [endMusic, gameMusic1991, gameMusicField, gameMusicHighTogether, gameMusicEnsenada, setupMusic]);
 
   useEffect(() => {
     const previousScreen = previousScreenRef.current;
@@ -54,14 +57,15 @@ export default function App() {
     if (screen === 'setup') {
       playMusic(setupMusic);
     } else if (screen === 'game' && previousScreen !== 'game') {
-      const selectedTrack = Math.random() < 0.5 ? gameMusic1991 : gameMusicField;
+      const gameTracks = [gameMusic1991, gameMusicField, gameMusicHighTogether, gameMusicEnsenada];
+      const selectedTrack = gameTracks[Math.floor(Math.random() * gameTracks.length)];
       playMusic(selectedTrack);
     } else if (screen === 'scoreReveal' && previousScreen === 'game') {
       playMusic(endMusic);
     }
 
     previousScreenRef.current = screen;
-  }, [endMusic, gameMusic1991, gameMusicField, playMusic, screen, setupMusic]);
+  }, [endMusic, gameMusic1991, gameMusicField, gameMusicHighTogether, gameMusicEnsenada, playMusic, screen, setupMusic]);
 
   useEffect(() => {
     transitionOpacity.setValue(0);

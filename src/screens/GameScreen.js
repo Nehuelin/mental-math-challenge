@@ -126,9 +126,23 @@ export function GameScreen({ settings, onCancel, onFinish }) {
       timedOut,
       responseTimeMs: responseTimeMs ?? questionTimeLimitMs,
     });
-    const nextTimeLimitMs = dynamicDifficultyEnabled && isCorrect
-      ? Math.max(difficultyConfig.minDynamicTimeMs, questionTimeLimitMs - difficultyConfig.dynamicTimeStepMs)
-      : questionTimeLimitMs;
+    const nextTimeLimitMs = (() => {
+      if (!dynamicDifficultyEnabled) {
+        return questionTimeLimitMs;
+      }
+
+      if (isCorrect) {
+        return Math.max(difficultyConfig.minDynamicTimeMs, questionTimeLimitMs - difficultyConfig.dynamicTimeStepMs);
+      }
+
+      const recoveryGap = Math.max(0, difficultyConfig.maxTimeMs - questionTimeLimitMs);
+      const recoveryStepMs = Math.max(
+        Math.round(difficultyConfig.dynamicTimeStepMs * 0.6),
+        Math.round(recoveryGap * 0.2),
+      );
+
+      return Math.min(difficultyConfig.maxTimeMs, questionTimeLimitMs + recoveryStepMs);
+    })();
     const difficultyBoosted = nextTimeLimitMs < questionTimeLimitMs;
     const trialTimeBonusMs = isTimeTrial && isCorrect
       ? ({ easy: 2500, medium: 2000, hard: 1500 }[settings.difficulty] || 0)

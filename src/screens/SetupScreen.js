@@ -99,7 +99,7 @@ export function SetupScreen({
           <Text style={styles.deployableTitle}>Partidas guardadas</Text>
           <Text style={styles.deployableIcon}>{showSavedGames ? '▲' : '▼'}</Text>
         </Pressable>
-        {showSavedGames && history.slice(0, 5).map((round) => (
+        {showSavedGames && history.slice(0, 50).map((round) => (
           <View key={round.id} style={styles.historyItem}>
             <Text style={styles.historyTitle}>{round.modeLabel} • {round.difficultyLabel}</Text>
             <Text style={styles.historyMeta}>

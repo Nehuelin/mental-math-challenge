@@ -90,7 +90,11 @@ export function SummaryScreen({ round, onRestart, onHome }){
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Velocidad por pregunta</Text>
-        <View style={styles.speedChart}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator
+          contentContainerStyle={styles.speedChart}
+        >
           {round.answers.map((answer, index) => {
             const responseTime = answer.responseTimeMs ?? (answer.timeLimitMs ?? maxResponseTime);
             const height = Math.max(8, (responseTime / maxResponseTime) * 110);
@@ -101,7 +105,7 @@ export function SummaryScreen({ round, onRestart, onHome }){
               </View>
             );
           })}
-        </View>
+        </ScrollView>
       </View>
 
       <View style={styles.section}>
@@ -246,10 +250,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     minHeight: 140,
+    paddingBottom: 2,
+    paddingRight: 6,
   },
   speedBarWrap: {
     alignItems: 'center',
-    flex: 1,
+    width: 32,
     justifyContent: 'flex-end',
   },
   speedBar: {

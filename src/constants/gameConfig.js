@@ -36,7 +36,7 @@ export const DIFFICULTIES = {
     operands: { min: 18, max: 160 },
     multipliers: { min: 6, max: 19 },
     operators: ['+', '-', '×', '÷'],
-    baseScore: 148,
+    baseScore: 198,
     speedBonus: 84,
     wrongPenalty: 52,
     timeoutPenalty: 76,
@@ -65,6 +65,6 @@ export const GAME_MODES = {
   },
 };
 
-export const ITERATION_OPTIONS = [5, 10, 15, 20];
+export const ITERATION_OPTIONS = [5, 10, 15, 20, 35, 50];
 export const DEFAULT_ITERATIONS = 10;
-export const HISTORY_LIMIT = 25;
+export const HISTORY_LIMIT = 55;
