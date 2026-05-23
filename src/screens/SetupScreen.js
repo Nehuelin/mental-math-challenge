@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DIFFICULTIES, GAME_MODES, ITERATION_OPTIONS } from '../constants/gameConfig';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { StatCard } from '../components/StatCard';
@@ -16,6 +17,7 @@ export function SetupScreen({
   onStart,
   onClearHistory,
 }) {
+  const [showSavedGames, setShowSavedGames] = useState(false); 
   const bestScore = history.length ? Math.max(...history.map((round) => round.summary.score)) : 0;
   const roundsPlayed = history.length;
 
@@ -93,7 +95,11 @@ export function SetupScreen({
           <StatCard label="High score" value={bestScore} />
           <StatCard label="Rondas guardadas" value={roundsPlayed} />
         </View>
-        {history.slice(0, 5).map((round) => (
+        <Pressable style={styles.deployableHeader} onPress={() => setShowSavedGames((current) => !current)}>
+          <Text style={styles.deployableTitle}>Partidas guardadas</Text>
+          <Text style={styles.deployableIcon}>{showSavedGames ? '▲' : '▼'}</Text>
+        </Pressable>
+        {showSavedGames && history.slice(0, 5).map((round) => (
           <View key={round.id} style={styles.historyItem}>
             <Text style={styles.historyTitle}>{round.modeLabel} • {round.difficultyLabel}</Text>
             <Text style={styles.historyMeta}>
@@ -101,7 +107,7 @@ export function SetupScreen({
             </Text>
           </View>
         ))}
-        {history.length > 0 && <PrimaryButton title="Limpiar historial" variant="danger" onPress={onClearHistory} />}
+        {showSavedGames && history.length > 0 && <PrimaryButton title="Limpiar historial" variant="danger" onPress={onClearHistory} />}
       </View>
     </ScrollView>
   );
@@ -179,6 +185,26 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  deployableHeader: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  deployableTitle: {
+    color: '#17213f',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  deployableIcon: {
+    color: '#6f7894',
+    fontSize: 12,
+    fontWeight: '900',
   },
   historyItem: {
     backgroundColor: '#ffffff',

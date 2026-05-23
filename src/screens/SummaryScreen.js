@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { StatCard } from '../components/StatCard';
 import PieChart from 'react-native-pie-chart';
@@ -7,6 +8,8 @@ const formatSeconds = (ms) => `${(ms / 1000).toFixed(2)}s`;
 const formatPercent = (value, total) => `${((value * 100) / total).toFixed(1)}%`;
 
 export function SummaryScreen({ round, onRestart, onHome }){
+  const [showStatCards, setShowStatCards] = useState(true);
+  const [showQuestionRegister, setShowQuestionRegister] = useState(false);
   const { summary } = round;
   const maxResponseTime = Math.max(...round.answers.map((answer) => answer.timeLimitMs ?? answer.responseTimeMs ?? 1), 1);
   const largestScorePart = Math.max(
@@ -42,15 +45,23 @@ export function SummaryScreen({ round, onRestart, onHome }){
         <Text style={styles.subtitle}>{round.modeLabel} • {round.difficultyLabel}</Text>
       </View>
 
-      <View style={styles.statsRow}>
-        <StatCard label="Precisión" value={`${summary.accuracy}%`}></StatCard>
-        <StatCard label="Correctas" value={summary.correct} />
-        <StatCard label="Incorrectas" value={summary.incorrect} />
-        <StatCard label="Fuera de tiempo" value={summary.timedOut} />
-        <StatCard label="Tiempo promedio" value={formatSeconds(summary.averageResponseMs)} />
-        <StatCard label="Más rápida" value={formatSeconds(summary.fastestResponseMs)} />
-        <StatCard label="Más lenta" value={formatSeconds(summary.slowestResponseMs)} />
-        <StatCard label="Preguntas totales" value={summary.total} />
+      <View style={styles.section}>
+        <Pressable style={styles.deployableHeader} onPress={() => setShowStatCards((current) => !current)}>
+          <Text style={styles.sectionTitle}>Resumen de estadísticas</Text>
+          <Text style={styles.deployableIcon}>{showStatCards ? '▲' : '▼'}</Text>
+        </Pressable>
+        {showStatCards && (
+          <View style={styles.statsRow}>
+            <StatCard label="Precisión" value={`${summary.accuracy}%`}></StatCard>
+            <StatCard label="Correctas" value={summary.correct} />
+            <StatCard label="Incorrectas" value={summary.incorrect} />
+            <StatCard label="Fuera de tiempo" value={summary.timedOut} />
+            <StatCard label="Tiempo promedio" value={formatSeconds(summary.averageResponseMs)} />
+            <StatCard label="Más rápida" value={formatSeconds(summary.fastestResponseMs)} />
+            <StatCard label="Más lenta" value={formatSeconds(summary.slowestResponseMs)} />
+            <StatCard label="Preguntas totales" value={summary.total} />
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -93,9 +104,12 @@ export function SummaryScreen({ round, onRestart, onHome }){
         </View>
       </View>
 
-			<View style={styles.section}>
-        <Text style={styles.sectionTitle}>Registro de preguntas</Text>
-        {round.answers.map((answer, index) => (
+      <View style={styles.section}>
+        <Pressable style={styles.deployableHeader} onPress={() => setShowQuestionRegister((current) => !current)}>
+          <Text style={styles.sectionTitle}>Registro de preguntas</Text>
+          <Text style={styles.deployableIcon}>{showQuestionRegister ? '▲' : '▼'}</Text>
+        </Pressable>
+        {showQuestionRegister && round.answers.map((answer, index) => (
           <View key={`${answer.questionId}-${index}`} style={styles.answerRow}>
             <Text style={styles.answerExpression}>{index + 1}. {answer.expression}</Text>
             <Text style={[styles.answerMeta, answer.isCorrect ? styles.correct : styles.incorrect]}>
@@ -158,6 +172,16 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 12,
+  },
+  deployableHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  deployableIcon: {
+    color: '#6f7894',
+    fontSize: 12,
+    fontWeight: '900',
   },
   accuracyTrack: {
     backgroundColor: '#f5f7ff',

@@ -3,8 +3,18 @@ import { HISTORY_LIMIT } from '../constants/gameConfig';
 
 const HISTORY_KEY = 'mental-math-challenge:history';
 
+const checkStorage = async () => {
+  try {
+    const result = await AsyncStorage.getItem(HISTORY_KEY);
+    console.log(result);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export const loadHistory = async () => {
   const value = await AsyncStorage.getItem(HISTORY_KEY);
+  // checkStorage(); // para mostrar los datos almacenados
   return value ? JSON.parse(value) : [];
 };
 
