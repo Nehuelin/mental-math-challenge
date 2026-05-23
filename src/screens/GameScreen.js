@@ -54,7 +54,7 @@ export function GameScreen({ settings, onCancel, onFinish }) {
     });
   }, [onFinish, settings]);
 
-    const animateFeedback = useCallback(() => {
+  const animateFeedback = useCallback(() => {
     feedbackScale.setValue(0.94);
     Animated.spring(feedbackScale, {
       toValue: 1,
@@ -453,12 +453,12 @@ export function GameScreen({ settings, onCancel, onFinish }) {
           {!!feedback && <Text style={styles.feedback}>{feedback}</Text>}
         </Animated.View>
 
-        <View style={styles.rulesCard}>
+        {/* <View style={styles.rulesCard}>
           <Text style={styles.rulesTitle}>Scoring</Text>
           <Text style={styles.rulesText}>
             Las respuestas correctas otorgan una puntuación basada en la dificultad más un bonus variable por velocidad. Los errores y los tiempos expirados restan puntos.
           </Text>
-        </View>
+        </View> */}
       </ScrollView>
     </KeyboardAvoidingView>
   );

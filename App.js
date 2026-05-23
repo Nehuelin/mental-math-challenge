@@ -42,8 +42,11 @@ export default function App() {
   }, [stopAllMusic]);
 
   useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true });
-  }, []);
+    void setAudioModeAsync({ playsInSilentMode: true });
+    [setupMusic, gameMusic1991, gameMusicField, endMusic].forEach((player) => {
+      player.loop = true;
+    });
+  }, [endMusic, gameMusic1991, gameMusicField, setupMusic]);
 
   useEffect(() => {
     const previousScreen = previousScreenRef.current;
@@ -79,7 +82,6 @@ export default function App() {
       }),
     ]).start();
   }, [screen, transitionOpacity, transitionTranslate]);
-
 
   useEffect(() => {
     let mounted = true;
@@ -128,26 +130,26 @@ export default function App() {
       <StatusBar style="light" />
       {!!storageError && <Text style={styles.storageError}>{storageError}</Text>}
       <Animated.View style={[styles.screenContainer, { opacity: transitionOpacity, transform: [{ translateY: transitionTranslate }] }]}>
-      {screen === 'setup' && (
-        <SetupScreen
-          difficulty={difficulty}
-          dynamicDifficulty={dynamicDifficulty}
-          history={history}
-          iterations={iterations}
-          mode={mode}
-          onClearHistory={handleClearHistory}
-          onDifficultyChange={setDifficulty}
-          onDynamicDifficultyChange={setDynamicDifficulty}
-          onIterationsChange={setIterations}
-          onModeChange={setMode}
-          onStart={startRound}
-        />
-      )}
-      {screen === 'game' && <GameScreen settings={settings} onCancel={() => setScreen('setup')} onFinish={finishRound} />}
-      {screen === 'scoreReveal' && lastRound && <ScoreRevealScreen round={lastRound} onContinue={() => setScreen('summary')} />}
-      {screen === 'summary' && lastRound && (
-        <SummaryScreen round={lastRound} onHome={() => setScreen('setup')} onRestart={startRound} />
-      )}
+        {screen === 'setup' && (
+          <SetupScreen
+            difficulty={difficulty}
+            dynamicDifficulty={dynamicDifficulty}
+            history={history}
+            iterations={iterations}
+            mode={mode}
+            onClearHistory={handleClearHistory}
+            onDifficultyChange={setDifficulty}
+            onDynamicDifficultyChange={setDynamicDifficulty}
+            onIterationsChange={setIterations}
+            onModeChange={setMode}
+            onStart={startRound}
+          />
+        )}
+        {screen === 'game' && <GameScreen settings={settings} onCancel={() => setScreen('setup')} onFinish={finishRound} />}
+        {screen === 'scoreReveal' && lastRound && <ScoreRevealScreen round={lastRound} onContinue={() => setScreen('summary')} />}
+        {screen === 'summary' && lastRound && (
+          <SummaryScreen round={lastRound} onHome={() => setScreen('setup')} onRestart={startRound} />
+        )}
       </Animated.View>
     </SafeAreaView>
   );

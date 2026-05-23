@@ -8,7 +8,7 @@ const formatSeconds = (ms) => `${(ms / 1000).toFixed(2)}s`;
 const formatPercent = (value, total) => `${((value * 100) / total).toFixed(1)}%`;
 
 export function SummaryScreen({ round, onRestart, onHome }){
-  const [showStatCards, setShowStatCards] = useState(true);
+  const [showStatCards, setShowStatCards] = useState(false);
   const [showQuestionRegister, setShowQuestionRegister] = useState(false);
   const { summary } = round;
   const maxResponseTime = Math.max(...round.answers.map((answer) => answer.timeLimitMs ?? answer.responseTimeMs ?? 1), 1);
